@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#050912">
+<title>Blue Whale Alfabesi</title>
+<style>
+:root{--bg:#050912;--panel:#0b1424;--key:#101d31;--line:#294c7b;--blue:#68b8ff;--ink:#eaf4ff;--muted:#9bb0ca}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#102342 0,#050912 55%);color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+.wrap{max-width:760px;margin:auto;padding:14px}
+header{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #31547f;border-radius:18px;background:#081323;box-shadow:0 0 22px #1d68ad22}
+.whale{font-size:34px;color:var(--blue)}h1{font-size:17px;letter-spacing:4px;margin:0}header small{letter-spacing:4px;color:var(--muted)}
+.tabs{display:flex;gap:8px;margin:14px 0}.tabs button,.action{border:1px solid var(--line);background:#0c1a2d;color:var(--ink);border-radius:12px;padding:12px 10px;font-weight:650}.tabs button{flex:1}.tabs button.active{background:#16375d;border-color:var(--blue);box-shadow:0 0 14px #2789e655}
+.panel{border:1px solid #203b60;border-radius:16px;background:#091425;padding:13px;margin-bottom:12px}
+label{display:block;color:var(--muted);font-size:12px;letter-spacing:1px;margin:0 0 8px}
+textarea{width:100%;min-height:88px;resize:vertical;border-radius:12px;border:1px solid #31547b;background:#050d19;color:#fff;padding:12px;font:17px system-ui;outline:none}
+.output{min-height:84px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:23px;line-height:1.7;padding:12px;background:#050d19;border:1px solid #31547b;border-radius:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.action{flex:1;min-width:110px;cursor:pointer}.action.primary{background:#164477;border-color:#69baff}
+.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.key{min-height:72px;border:1px solid #294a72;border-radius:11px;background:linear-gradient(145deg,#14243b,#0b1525);color:#eaf4ff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer;padding:5px}
+.key:active{background:#1c4775;transform:scale(.97)}.latin{font-size:11px;color:#9db5d3}.glyph{font-size:27px;line-height:1.1;font-weight:500}
+.note{font-size:12px;color:#9bb0ca;line-height:1.5;margin:10px 2px}.hidden{display:none}
+@media(max-width:390px){.grid{grid-template-columns:repeat(6,minmax(0,1fr))}.key{min-height:67px}.glyph{font-size:25px}}
+</style>
+</head>
+<body><main class="wrap">
+<header><div class="whale">♧</div><div><h1>BLUE WHALE</h1><small>ALFABESİ</small></div></header>
+<div class="tabs"><button id="directTab" class="active" onclick="setMode('direct')">Gizli Alfabe</button><button id="convertTab" onclick="setMode('convert')">Türkçe → Gizli</button></div>
+
+<section id="directPanel" class="panel">
+<label>SEMBOLLERE DOKUNARAK YAZ</label>
+<div id="directOutput" class="output" aria-live="polite"></div>
+<div class="row"><button class="action" onclick="space()">Boşluk</button><button class="action" onclick="backspace()">Sil</button><button class="action primary" onclick="copyText('directOutput')">Kopyala</button><button class="action" onclick="clearOutput()">Temizle</button></div>
+</section>
+
+<section id="convertPanel" class="panel hidden">
+<label>TÜRKÇE METNİNİ YAZ</label>
+<textarea id="source" placeholder="Örnek: MERHABA BLUE WHALE" oninput="convert()"></textarea>
+<label style="margin-top:12px">BLUE WHALE ÇEVİRİSİ</label>
+<div id="converted" class="output"></div>
+<div class="row"><button class="action primary" onclick="copyText('converted')">Gizli yazıyı kopyala</button><button class="action" onclick="document.getElementById('source').value='';convert()">Temizle</button></div>
+</section>
+
+<section class="panel">
+<label>BLUE WHALE HARF TABLOSU · TUŞLARA DOKUN</label>
+<div class="grid" id="keys"></div>
+<p class="note">Bu ilk telefon sürümüdür. Semboller fotoğrafındaki çizimlerden yola çıkılarak sadeleştirilmiş yaklaşık dijital karşılıklardır. İstediğin harfi ve şeklini birlikte düzeltebiliriz.</p>
+</section>
+<p class="note">Not: Kopyalanan semboller Unicode karakterleridir; başka telefonda görünüşleri değişebilir. Bu sürüm bir web klavyesidir, Android'in sistem klavyesini henüz değiştirmez.</p>
+</main>
+<script>
+const alphabet = [
+['A','△'],['B','ʅ'],['C','○'],['Ç','⊙'],['D','◇'],['E','∿'],['F','⊣'],['G','⋏'],['Ğ','↗'],
+['H','⋔'],['I','•'],['İ','⌁'],['J','◇̸'],['K','×'],['L','┘'],['M','▥'],['N','▤'],['O','▯'],['Ö','▱'],
+['P','⊿'],['R','▱̲'],['S','▽'],['Ş','؟'],['T','⊥'],['U','Ⅱ'],['Ü','Ⅱ̲'],['V','⌜'],['Y','♙'],['Z','≋']
+];
+const map = Object.fromEntries(alphabet);
+const keys = document.getElementById('keys');
+alphabet.forEach(([letter,glyph])=>{
+ const b=document.createElement('button');b.className='key';b.innerHTML=`<span class="latin">${letter}</span><span class="glyph">${glyph}</span>`;
+ b.onclick=()=>{if(!document.getElementById('directPanel').classList.contains('hidden'))document.getElementById('directOutput').textContent+=glyph;else{document.getElementById('source').value+=letter;convert();}};
+ keys.appendChild(b);
+});
+function setMode(mode){
+ const direct=mode==='direct';
+ document.getElementById('directPanel').classList.toggle('hidden',!direct);
+ document.getElementById('convertPanel').classList.toggle('hidden',direct);
+ document.getElementById('directTab').classList.toggle('active',direct);
+ document.getElementById('convertTab').classList.toggle('active',!direct);
+}
+function convert(){
+ const s=document.getElementById('source').value.toLocaleUpperCase('tr-TR');
+ let out='';for(const ch of s){out+=map[ch]||ch;}document.getElementById('converted').textContent=out;
+}
+function space(){document.getElementById('directOutput').textContent+=' ';}
+function backspace(){const e=document.getElementById('directOutput');e.textContent=e.textContent.slice(0,-1);}
+function clearOutput(){document.getElementById('directOutput').textContent='';}
+async function copyText(id){
+ const el=document.getElementById(id);const t=el.value!==undefined?el.value:el.textContent;
+ try{await navigator.clipboard.writeText(t);alert('Kopyalandı! Mesajına yapıştırabilirsin.');}
+ catch(e){const r=document.createElement('textarea');r.value=t;document.body.appendChild(r);r.select();document.execCommand('copy');r.remove();alert('Kopyalandı!');}
+}
+</script></body></html>
